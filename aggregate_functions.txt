@@ -1,0 +1,983 @@
+********************************************************************************************************************************************
+220.158.158.100/32 --> current ip address which was present in mongodb atlas account created to learn mongodb aggregations...
+********************************************************************************************************************************************
+
+create a database with name aggregateFunctions
+
+use aggregateFunctions
+=============================================================================================================================================
+add a collection to the aggregateFunctions database with name employee
+db.employee.insertMany([
+{
+    employee_id: 200,
+    first_name: "Nishanth",
+    last_name: "Nishi",
+    email: "nishanth@gmail.com",
+    phone_number: 7349661741,
+    hire_date: "08-mar-2021",
+    job_id: "Ac_Developer",
+    salary: 40000,
+    manager_id:300,
+    department_id:100
+},
+{
+    employee_id: 201,
+    first_name: "Vishwa",
+    last_name: "nath",
+    email: "vishwa@gmail.com",
+    phone_number: 7349661742,
+    hire_date: "08-april-2021",
+    job_id: "Ac_Developer",
+    salary: 50000,
+    manager_id:301,
+    department_id:100
+},
+{
+    employee_id: 202,
+    first_name: "bharath",
+    last_name: "kumar",
+    email: "bharath@gmail.com",
+    phone_number: 7349661743,
+    hire_date: "08-may-2021",
+    job_id: "Ac_Tester",
+    salary: 60000,
+    manager_id:302,
+    department_id:102
+},
+{
+    employee_id: 203,
+    first_name: "mani",
+    last_name: "kanta",
+    email: "mani@gmail.com",
+    phone_number: 7349661744,
+    hire_date: "08-june-2021",
+    job_id: "Ac_Developer",
+    salary: 60000,
+    manager_id:303,
+    department_id:100
+},
+{
+    employee_id: 204,
+    first_name: "pavan",
+    last_name: "kumar",
+    email: "pavan@gmail.com",
+    phone_number: 7349661745,
+    hire_date: "08-july-2021",
+    job_id: "Ac_Manager",
+    salary: 70000,
+    manager_id:304,
+    department_id:104
+},
+{
+    employee_id: 205,
+    first_name: "praveen",
+    last_name: "kumar",
+    email: "praveen@gmail.com",
+    phone_number: 7349661746,
+    hire_date: "08-aug-2021",
+    job_id: "Ac_Account",
+    salary: 80000,
+    manager_id:305,
+    department_id:105
+}
+])
+=============================================================================================================================================
+
+view the collection
+
+db.employees.find().pretty()
+=============================================================================================================================================
+
+filter documents by same department_id ie 100 
+
+db.employees.aggregate([{ $match : {department_id: 100}}])
+=============================================================================================================================================
+
+groupby department_id
+
+db.employee.aggregate([{ $group : {_id : "$department_id"}}])
+=============================================================================================================================================
+
+count total employees in perticular department
+
+db.employees.aggregate([{ $match : {department_id : 100}}, {$count: "Total employees in department:100"}])
+
+=============================================================================================================================================
+1 -> how many users are active?
+
+aggregation pipeline with 2 stages ie match and count
+
+[
+  {
+    $match: {
+      isActive: true
+    }
+  },
+  {
+    $count: 'activeUsers'
+  }
+]
+
+result
+
+{
+  "activeUsers": 516
+}
+
+=============================================================================================================================================
+2 -> what is the average age of all users?
+
+group by gender
+
+[
+  {
+    $group: {
+      _id: "$gender"
+    }
+  }
+]
+
+result
+
+{
+  "_id": "female"
+}
+{
+  "_id": "male"
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+group by age
+
+[
+  {
+    $group: {
+      _id: "$age",
+    }
+  }
+]
+
+result
+
+{
+  "_id": 39
+}
+{
+  "_id": 33
+}
+{
+  "_id": 22
+}
+{
+  "_id": 32
+}
+{
+  "_id": 24
+}
+{
+  "_id": 28
+}
+{
+  "_id": 29
+}
+{
+  "_id": 31
+}
+{
+  "_id": 23
+}
+{
+  "_id": 36
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+$avg -->
+
+[
+  {
+    $group: {
+      _id: null,
+      average_age: {
+        $avg: "$age"
+      }
+    }
+  }
+]
+
+result
+
+{
+  "average_age": 29.835,
+  "_id": null
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+group by "gender" field
+
+[
+  {
+    $group: {
+      _id: "$gender",
+      average_age: {
+        $avg: "$age"
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": "female",
+  "average_age": 29.81854043392505
+}
+{
+  "_id": "male",
+  "average_age": 29.851926977687626
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+average of complete collections
+[
+  {
+    $group: {
+      _id: null,
+      average_age: {
+        $avg: "$age"
+      }
+    }
+  }
+]
+
+result
+{
+  "_id": null,
+  "average_age": 29.835
+}
+=============================================================================================================================================
+3 -> List the top 5 most common fruits among the users?
+
+group by favoriteFruit field
+
+[
+  {
+    $group: {
+      _id: "$favoriteFruit",
+    },
+  },
+]
+
+result
+
+{
+  "_id": "banana"
+}
+{
+  "_id": "apple"
+}
+{
+  "_id": "strawberry"
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+group and count by favoritFruit field
+
+[
+  {
+    $group: {
+      _id: "$favoriteFruit",
+      "count":{
+        $sum: 1
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": "apple",
+  "count": 338
+}
+{
+  "_id": "banana",
+  "count": 339
+}
+{
+  "_id": "strawberry",
+  "count": 323
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+count/sort by favorite fruit   1 -> asc / -1 -> desc
+
+[
+  {
+    $group: {
+      _id: "$favoriteFruit",
+      "count":{
+        $sum: 1
+      }
+    }
+  },
+  {
+    $sort: {
+      count: -1
+    }
+  }
+]
+
+result
+
+{
+  "count": 339,
+  "_id": "banana"
+}
+{
+  "count": 338,
+  "_id": "apple"
+}
+{
+  "_id": "strawberry",
+  "count": 323
+}
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+top 5
+
+[
+  {
+    $group: {
+      _id: "$favoriteFruit",
+      "count":{
+        $sum: 1
+      }
+    }
+  },
+  {
+    $sort: {
+      count: -1
+    }
+  },
+  {
+    $limit: 5
+  }
+]
+
+result
+
+{
+  "count": 339,
+  "_id": "banana"
+}
+{
+  "count": 338,
+  "_id": "apple"
+}
+{
+  "_id": "strawberry",
+  "count": 323
+}
+
+=============================================================================================================================================
+
+4 -> find the total number of males & females
+
+[
+  {
+    $group: {
+      _id: "$gender",
+      count: {
+        $sum: 1
+      }
+    }
+  }
+]
+
+result
+{
+  "_id": "female",
+  "count": 507
+}
+{
+  "count": 493,
+  "_id": "male"
+}
+=============================================================================================================================================
+
+5 -> which country has the highest number of registered users?
+
+[
+  {
+    $group: {
+      _id: "$company.location.country",
+      userCount: {
+        $sum: 1
+      }
+    }
+  },
+  {
+    $sort: {
+      userCount: -1
+    }
+  },
+  {
+    $limit: 1
+  }
+]
+
+result
+
+{
+  "_id": "Germany",
+  "userCount": 261
+}
+=============================================================================================================================================
+
+6 -> List all the unique eye colors present in the collectioni
+
+[
+  {
+    $group: {
+      _id: "$eyeColor"
+    }
+  }
+]
+
+result
+
+{
+  "_id": "green"
+}
+{
+  "_id": "blue"
+}
+{
+  "_id": "brown"
+}
+=============================================================================================================================================
+
+7 -> what is the average number of tags per user?
+
+$unwind --> dividing the array with elements by tags (ie same _id, name but different tags)
+
+approach --> 1
+
+[
+  {
+    $unwind: "$tags"
+  },
+  {
+    $group: {
+      _id: "$_id",
+      numberOfTags: {
+        $sum: 1
+      }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      averageNumberOfTags: {
+        $avg: "$numberOfTags"
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": null,
+  "averageNumberOfTags": 3.556
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+approach --> 2
+
+$addFields --> adds a new field to the document
+$size --> finds the size of an array
+$ifNull --> checks if it is null (ie tags field no present case to handle expection case)
+
+[
+  {
+    $addFields: {
+      numberOfTags: {
+        $size: {$ifNull : ["$tags",[]]}
+      }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      averageNumberOfTags: {
+        $avg: "$numberOfTags"
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": null,
+  "averageNumberOfTags": 3.556
+}
+=============================================================================================================================================
+
+8 -> How many users have 'enim' as one of their tags?
+
+[
+  {
+    $match: {
+      tags: 'enim'
+    }
+  },
+  {
+    $count: 'usersWithEnimTag'
+  }
+]
+
+result 
+
+{
+  "usersWithEnimTag": 62
+}
+
+=============================================================================================================================================
+
+9 -> what are the names & age of users who are inactive & have 'velit' as a tag?
+
+[
+  {
+    $match: {
+      isActive: false,
+      tags: "velit"
+    }
+  },
+  {
+    $project: {
+      name: 1,
+      age: 1
+    }
+  }
+]
+
+result
+
+{
+  "_id": {
+    "$oid": "6584377b1f266b7d70375adc"
+  },
+  "name": "Aurelia Gonzales",
+  "age": 20
+}
+
+{
+  "name": "Becker Lara",
+  "age": 32,
+  "_id": {
+    "$oid": "6584377b1f266b7d70375b47"
+  }
+}
+
+and so on .....
+
+=============================================================================================================================================
+
+10 -> How many users have a phone number starting with '+1 (940)'?
+
+[
+  {
+    $match: {
+      "company.phone": /^\+1 \(940\) /
+    }
+  },
+  {
+    $count: 'usersWithSpecialPhoneNumber'
+  }
+]
+
+result
+
+{
+  "usersWithSpecialPhoneNumber": 5
+}
+
+=============================================================================================================================================
+
+11 -> Who has registered most recently?
+
+[
+  {
+    $sort: {
+      registered: -1
+    }
+  },
+  {
+    $limit: 3
+  },
+  {
+    $project: {
+      name: 1,
+      registered: 1,
+      favoriteFruit: 1
+    }
+  }
+]
+
+result
+
+{
+  "_id": {
+    "$oid": "6584377b1f266b7d70375d9e"
+  },
+  "name": "Stephenson Griffith",
+  "registered": {
+    "$date": "2018-04-14T03:16:20.000Z"
+  },
+  "favoriteFruit": "apple"
+}
+{
+  "_id": {
+    "$oid": "6584377b1f266b7d70375c8f"
+  },
+  "name": "Sonja Galloway",
+  "registered": {
+    "$date": "2018-04-11T12:52:12.000Z"
+  },
+  "favoriteFruit": "strawberry"
+}
+{
+  "registered": {
+    "$date": "2018-04-11T07:18:42.000Z"
+  },
+  "favoriteFruit": "strawberry",
+  "_id": {
+    "$oid": "6584377b1f266b7d70375eb0"
+  },
+  "name": "Mcpherson Christensen"
+}
+
+=============================================================================================================================================
+
+12 -> Categorize users by their favorite fruit?
+
+[
+  {
+    $group: {
+      _id: "$favoriteFruit",
+      users: {
+        $push: "$name"
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": "apple",
+  "users": [
+    "Kitty Snow",
+    "Grace Larson",
+    "Carmella Morse",
+    "Pace Irwin",
+    "Barrett Pacheco"
+  ]
+}
+{
+  "_id": "strawberry",
+  "users": [
+    "Karyn Rhodes",
+    "Bryant Thornton",
+    "Lupe Barry",
+    "Morrison Sheppard",
+    "Herman David"
+  ]
+}
+{
+  "_id": "banana",
+  "users": [
+    "Aurelia Gonzales",
+    "Franco Ochoa",
+    "Alison Farmer",
+    "Crane Dunn",
+    "Ellen Schroeder"
+  ]
+}
+
+=============================================================================================================================================
+
+13 -> How many users have 'ad' as the second tag in their list of tags?
+
+[
+  {
+    $match: {
+      "tags.1": "ad"
+    }
+  },
+  {
+    $count: 'secondTagAd'
+  }
+]
+
+result
+
+{
+  "secondTagAd": 12
+}
+
+=============================================================================================================================================
+
+14 -> Find users who have both 'enim' and 'id' as their tags?
+
+[
+  {
+    $match: {
+      tags:{
+        $all: ["enim", "id"]
+      }
+    }
+  }
+]
+
+result
+
+{
+  "company": {
+    "title": "YURTURE",
+    "email": "aureliagonzales@yurture.com",
+    "phone": "+1 (940) 501-3963",
+    "location": {
+      "country": "USA",
+      "address": "694 Hewes Street"
+    }
+  },
+  "tags": [
+    "enim",
+    "id",
+    "velit",
+    "ad",
+    "consequat"
+  ],
+  "_id": {
+    "$oid": "6584377b1f266b7d70375adc"
+  },
+  "index": 0,
+  "gender": "female",
+  "age": 20,
+  "eyeColor": "green",
+  "favoriteFruit": "banana",
+  "name": "Aurelia Gonzales",
+  "isActive": false,
+  "registered": {
+    "$date": "2015-02-11T04:22:39.000Z"
+  }
+}
+
+and 4 more ...
+
+=============================================================================================================================================
+
+15 -> List all companies located in the USA with their corresponding user count?
+
+[
+  {
+    $match: {
+      "company.location.country": "USA"
+    }
+  },
+  {
+    $group: {
+      _id: "$company.title",
+      userCount: {
+        $sum: 1
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": "TECHMANIA",
+  "userCount": 1
+}
+{
+  "_id": "TERRAGO",
+  "userCount": 1
+}
+and so on...
+
+=============================================================================================================================================
+
+$lookup operator pipeline
+
+[
+  {
+    $lookup: {
+      from: "authors",
+      localField: "author_id",
+      foreignField: "_id",
+      as: "author_details"
+    }
+  }
+]
+
+result
+
+{
+  "_id": 1,
+  "title": "The Great Gatsby",
+  "author_id": 100,
+  "genre": "Classic",
+  "author_details": [
+    {
+      "_id": 100,
+      "name": "F. Scott Fitzgerald",
+      "birth_year": 1896
+    }
+  ]
+}
+{
+  "_id": 2,
+  "title": "Nineteen Eighty-Four",
+  "author_id": 101,
+  "genre": "Dystopian",
+  "author_details": [
+    {
+      "birth_year": 1903,
+      "_id": 101,
+      "name": "George Orwell"
+    }
+  ]
+}
+{
+  "title": "To Kill a Mockingbird",
+  "author_id": 102,
+  "genre": "Classic",
+  "author_details": [
+    {
+      "_id": 102,
+      "name": "Harper Lee",
+      "birth_year": 1926
+    }
+  ],
+  "_id": 3
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+[
+  {
+    $lookup: {
+      from: "authors",
+      localField: "author_id",
+      foreignField: "_id",
+      as: "author_details"
+    }
+  },
+  {
+    $addFields: {
+      author_details: {
+        $first: "$author_details"
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": 1,
+  "title": "The Great Gatsby",
+  "author_id": 100,
+  "genre": "Classic",
+  "author_details": {
+    "_id": 100,
+    "name": "F. Scott Fitzgerald",
+    "birth_year": 1896
+  }
+}
+
+{
+  "_id": 2,
+  "title": "Nineteen Eighty-Four",
+  "author_id": 101,
+  "genre": "Dystopian",
+  "author_details": {
+    "_id": 101,
+    "name": "George Orwell",
+    "birth_year": 1903
+  }
+}
+
+{
+  "_id": 3,
+  "title": "To Kill a Mockingbird",
+  "author_id": 102,
+  "genre": "Classic",
+  "author_details": {
+    "_id": 102,
+    "name": "Harper Lee",
+    "birth_year": 1926
+  }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+[
+  {
+    $lookup: {
+      from: "authors",
+      localField: "author_id",
+      foreignField: "_id",
+      as: "author_details"
+    }
+  },
+  {
+    $addFields: {
+      author_details: {
+        $arrayElemAt: ["$author_details",0]
+      }
+    }
+  }
+]
+
+result
+
+{
+  "_id": 1,
+  "title": "The Great Gatsby",
+  "author_id": 100,
+  "genre": "Classic",
+  "author_details": {
+    "_id": 100,
+    "name": "F. Scott Fitzgerald",
+    "birth_year": 1896
+  }
+}
+{
+  "_id": 2,
+  "title": "Nineteen Eighty-Four",
+  "author_id": 101,
+  "genre": "Dystopian",
+  "author_details": {
+    "_id": 101,
+    "name": "George Orwell",
+    "birth_year": 1903
+  }
+}
+{
+  "_id": 3,
+  "title": "To Kill a Mockingbird",
+  "author_id": 102,
+  "genre": "Classic",
+  "author_details": {
+    "name": "Harper Lee",
+    "birth_year": 1926,
+    "_id": 102
+  }
+}
+
+=============================================================================================================================================
+
+
+
+
